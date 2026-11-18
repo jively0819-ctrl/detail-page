@@ -1,5 +1,5 @@
 /* =========================================================
-   문안 생성 엔진 v2 — 입력(제품명 · 전성분 · (선택)대표성분) → 브랜드 상세 레이아웃의 '모든 문구 자리'별 문안
+   문안 생성 엔진 v3 — 입력(제품명 · 전성분 · (선택)대표성분) → 브랜드 상세 레이아웃의 '모든 문구 자리'별 문안
    - 기존 디자인요청서(엑셀) 문안 톤은 js/tone.js 사전에 정리되어 있습니다.
    - 레이아웃(layouts/<브랜드>/layout.js)의 블록 type 하나 = 상세 이미지 위 문구 자리 하나
    - 외부 AI 호출 없이 동작 → 같은 입력이면 항상 같은 문안
@@ -159,6 +159,7 @@
     const w = [];
     if (!String(input.name || '').trim()) w.push({ level: 'err', msg: '제품명을 입력해 주세요.' });
     if (!an.items.length) w.push({ level: 'err', msg: '전성분을 붙여넣어 주세요. (상품정보제공고시의 전성분 그대로)' });
+    if (!descOf(input)) w.push({ level: 'err', msg: '제품 설명을 입력해 주세요. (제품 포인트 · 제형 · 피부 고민을 2~5줄로 적으면 문안에 반영됩니다)' });
     const all = an.items.map(i => norm(i.k));
     (input.mains || []).filter(Boolean).forEach(m => {
       if (all.length && all.indexOf(norm(m)) < 0 && !an.items.some(i => norm(i.raw).indexOf(norm(m)) >= 0) && !(INDEX[norm(m)] && all.indexOf(norm(INDEX[norm(m)].k)) >= 0))
@@ -246,16 +247,67 @@
     });
     return out;
   }
+
+  /* =========================================================
+     제품 설명(필수 입력) 분석 — 설명 문장에서 포인트(피부 고민 · 제형 · 강조 성분 · 함량 · 강조 표현)를 뽑아 전성분 분석과 함께 사용
+     ========================================================= */
+  const CONC = [
+    ['moist', /보습|건조|수분|촉촉|당김|당기|메마|푸석/g], ['soothe', /진정|예민|민감|자극|붉|열감|가려|간지|편안|컴포트|지친/g],
+    ['smooth', /각질|피부결|결 정돈|결정돈|매끈|매끄|거칠|오돌|스크럽|고마쥬/g], ['glow', /윤기|생기|광채|칙칙|맑은|투명|톤 ?업|활력/g],
+    ['barrier', /장벽|탄력|탄탄|밸런스|바이옴|컨디션|건강한 피부/g], ['nourish', /영양|유연|고영양|리치|보호막/g],
+    ['fresh', /산뜻|유분|번들|피지|보송/g], ['clean', /세정|클렌징|노폐물|메이크업|딥 ?클렌/g], ['cool', /쿨링|청량|시원|열기/g]
+  ];
+  const TEXD = [
+    { k: '밀키', re: /밀키|우유|밀크/, adj: '밀키한', head: ['유효 성분의 빠른 흡수를 위한', '부드러운 밀키 텍스처'], feel: ['부드러운 밀키 텍스처로', '피부에 닿는 순간 풍부한 영양감 부여'], card: ['우유 같은 반전 텍스처', '유효 성분들의 시너지를 위한 특별한 제형으로 피부에 빈틈없는 보습감 부여'] },
+    { k: '젤', re: /젤리|워터 ?젤|수분 ?젤|젤 ?타입|젤 ?제형|탱글|말랑/, adj: '탱글한', head: ['피부에 가볍게 녹아드는', '말랑한 젤 텍스처'], feel: ['말랑한 젤 텍스처로', '피부에 닿는 순간 시원한 수분감 부여'], card: ['말랑한 젤 텍스처', '물처럼 가볍게 녹아드는 제형으로 피부에 산뜻한 수분감 부여'] },
+    { k: '워터리', re: /워터리|물 ?같은|물처럼|묽은|가벼운 제형|가벼운 텍스처/, adj: '산뜻한', head: ['피부에 빠르게 스며드는', '가벼운 워터리 텍스처'], feel: ['가벼운 워터리 텍스처로', '피부에 닿는 순간 산뜻한 수분감 부여'], card: ['가벼운 워터리 제형', '물처럼 가볍게 스며들어 끈적임 없이 산뜻한 수분감 부여'] },
+    { k: '에센스', re: /에센스 ?(제형|타입|텍스처)|쫀쫀/, adj: '쫀쫀한', head: ['유효 성분을 부드럽게 전달하는', '쫀쫀한 에센스 텍스처'], feel: ['쫀쫀한 에센스 텍스처로', '피부에 닿는 순간 촘촘한 보습감 부여'], card: ['쫀쫀한 에센스 제형', '에센스처럼 쫀쫀한 제형으로 피부에 빈틈없는 보습감 부여'] },
+    { k: '리치', re: /꾸덕|리치|쫀득|크리미|크림 ?제형/, adj: '리치한', head: ['피부를 포근하게 감싸는', '리치 크림 텍스처'], feel: ['리치한 크림 텍스처로', '피부에 닿는 순간 풍부한 영양감 부여'], card: ['포근한 리치 텍스처', '피부를 포근하게 감싸는 제형으로 오래 머무는 보습감 부여'] },
+    { k: '멜팅', re: /멜팅|사르르|녹아|녹는/, adj: '부드러운', head: ['체온에 사르르 녹아내리는', '멜팅 텍스처'], feel: ['사르르 녹아드는 멜팅 텍스처로', '피부에 닿는 순간 부드러운 오일리함 선사'], card: ['사르르 녹는 멜팅 텍스처', '체온에 녹아드는 제형으로 피부에 부드럽게 밀착'] },
+    { k: '거품', re: /거품|버블|폼 ?제형/, adj: '쫀쫀한', head: ['쫀쫀하게 일어나는', '풍성한 거품 텍스처'], feel: ['풍성한 거품으로', '피부에 닿는 순간 부드럽게 감싸는 세정감'], card: ['풍성한 거품 텍스처', '쫀쫀한 거품이 피부를 부드럽게 감싸 노폐물을 정돈'] }
+  ];
+  function descOf(input) {
+    if (input && input.desc != null) return String(input.desc).trim();
+    if (typeof document !== 'undefined') { const el = document.getElementById('fDesc'); if (el) return el.value.trim(); }
+    return '';
+  }
+  function parseDesc(text, an) {
+    const s = String(text || '').replace(/\s+/g, ' ').trim();
+    const out = { text: s, cats: [], ings: [], tex: null, high: false, lowIrr: false, pct: {} };
+    if (!s) return out;
+    const sc = {};
+    CONC.forEach(([c, re]) => { const m = s.match(re); if (m) { const first = s.search(new RegExp(re.source)); sc[c] = m.length * 10 - first / 100; } });
+    out.cats = Object.keys(sc).sort((a, b) => sc[b] - sc[a]);
+    out.tex = TEXD.find(t => t.re.test(s)) || null;
+    out.high = /고함량|고농축|고농도|듬뿍|가득/.test(s);
+    out.lowIrr = /저자극|무자극|자극 ?테스트|피부 ?자극 ?테스트|순한/.test(s);
+    out.pct = parsePct(s);
+    const ns = norm(s); const seen = {};
+    const hits = [];
+    (an ? an.items : []).forEach(it => {
+      if (it.base || !(it.d || canonT(it.k)) || seen[it.k]) return;
+      const t = canonT(it.k) || {};
+      const names = [it.k, t.disp, plantName(it.k), (INDEX[norm(it.k)] || {}).k].concat((INDEX[norm(it.k)] || {}).a || []).filter(n => n && String(n).replace(/\s/g, '').length >= 2);
+      let pos = -1;
+      names.forEach(n => { const p = ns.indexOf(norm(n)); if (p >= 0 && (pos < 0 || p < pos)) pos = p; });
+      if (pos >= 0) { seen[it.k] = 1; hits.push({ k: it.k, pos }); }
+    });
+    out.ings = hits.sort((a, b) => a.pos - b.pos).map(h => h.k);
+    return out;
+  }
   const uniq = arr => arr.filter(Boolean).filter((x, i, a) => a.findIndex(y => y.disp === x.disp) === i);
   function buildContext(brand, input) {
     const an = analyze(input.inci);
     const { title, volume } = splitVolume(input.name, input.volume);
     const type = detectType(title || input.name);
-    const pct = Object.assign(parsePct(title), parsePct(input.content));
+    const D = parseDesc(descOf(input), an);
+    const pct = Object.assign({}, D.pct, parsePct(title), parsePct(input.content));
     const groups0 = findGroups(an, []);
     const groupedK = groups0.reduce((a, g) => a.concat(g.members.map(x => x.k)), []);
     let mainsK = (input.mains || []).map(s => String(s || '').trim()).filter(Boolean).slice(0, 3);
     const userMains = mainsK.length;
+    // 제품 설명에서 언급한 성분을 먼저 대표성분으로 (전성분에 있는 것만)
+    D.ings.forEach(k => { if (mainsK.length < 3 && !mainsK.some(m => norm(m) === norm(k)) && groupedK.indexOf(k) < 0) mainsK.push(k); });
     if (mainsK.length < 3) mainsK = mainsK.concat(recommend(an, mainsK.concat(groupedK), 3 - mainsK.length, input.functional));
     const pick = k => {
       const hit = an.items.find(i => norm(i.k) === norm(k)) || an.items.find(i => norm(i.raw).indexOf(norm(k)) >= 0) || (INDEX[norm(k)] && an.items.find(i => i.k === INDEX[norm(k)].k));
@@ -270,6 +322,7 @@
     // 피부 고민 카테고리 3개 (대표성분 → 복합 그룹 → 제품 유형 기본값)
     const cats = [];
     if (type.tone && type.tone.lead) type.cats.forEach(c => { if (cats.indexOf(c) < 0) cats.push(c); });
+    D.cats.slice(0, 2).forEach(c => { if (CAT[c] && cats.indexOf(c) < 0) cats.push(c); });
     mains.forEach(m => { if (cats.indexOf(m.c) < 0) cats.push(m.c); });
     groups.forEach(g => { if (cats.length < 3 && cats.indexOf(g.c) < 0) cats.push(g.c); });
     type.cats.forEach(c => { if (cats.length < 3 && cats.indexOf(c) < 0) cats.push(c); });
@@ -279,7 +332,14 @@
     const heroIt = mains.concat(support).find(m => m.hero) || mains.concat(support).find(m => m.c === 'smooth' || m.c === 'powder') || mains[0];
     const nameEn = String(input.nameEn || '').trim() || englishName(title);
     const sig = an.items.find(i => /포도세포|포도줄기세포|포도캘러스/.test(i.k));
-    return { brand, input, an, title, volume, type, K: type.tone, mains, groups, support, four, cards, heroIt, cats: cats.slice(0, 3), C3, nameEn, fn: String(input.functional || ''), pct,
+    // 제품 설명의 제형 표현 → 텍스처 문구 교체
+    let K = type.tone;
+    if (D.tex) {
+      K = Object.assign({}, type.tone, { texHead: D.tex.head, feel: D.tex.feel, texCard: D.tex.card, texAdj: D.tex.adj });
+      if (K.texBody) K.texBody = K.texBody.replace(/^(\S+)고 (\S+) 사용감으로/, (m, a, b) => `${a}고 ${D.tex.adj} 사용감으로`);
+      if (K.texLines) K.texLines = [D.tex.head.join(' '), D.tex.feel[0], K.texLines[2]];
+    }
+    return { brand, input, an, title, volume, type, K, D, mains, groups, support, four, cards, heroIt, cats: cats.slice(0, 3), C3, nameEn, fn: String(input.functional || ''), pct,
       sig: sig ? toneItem(sig, pct) : null, irr: !!String(input.irrResult || '').trim(), clin: !!(String(input.clinResult || '').trim() || String(input.clinTitle || '').trim()) };
   }
   const c3 = (c, i) => c.C3[i] || c.C3[c.C3.length - 1] || CAT.moist;
@@ -296,7 +356,7 @@
      블록 문안 — 닥터에스떼 (「엑토인 1% 레스큐 토너」 요청서 톤)
      ========================================================= */
   const S = {};
-  S.dLine = c => [L('배지', c.input.line || c3(c, 0).en)];
+  S.dLine = c => [L('배지', c.input.line || c.brand.lineDefault || c3(c, 0).en)];
   S.dTitle = c => [L('title', c.title, { name: 1 })];
   S.dEnVol = c => [L('en', [c.nameEn, c.volume].filter(Boolean).join(' ') || c.title)];
   S.dTag = c => [L('h3', `${c3(c, 0).adj} 피부에 ${c3(c, 1).ben} 첫번째 솔루션!`)];
@@ -327,7 +387,7 @@
   S.dEnTitle = c => [L('대제목', c.nameEn || c.title)];
   S.dMeet = c => {
     const ks = c.mains.slice(0, 2).map(m => m.disp);
-    return [L('h3', `${ks.length ? josa(joinWa(ks), '으로/로') + ' 완성하는, ' : ''}${c3(c, 0).d.meet}`), L('h3', `${josa(c.title, '을/를')} 만나보세요.`)];
+    return [L('h3', `${ks.length ? (c.D && c.D.high ? '고함량 ' : '') + josa(joinWa(ks), '으로/로') + ' 완성하는, ' : ''}${c3(c, 0).d.meet}`), L('h3', `${josa(c.title, '을/를')} 만나보세요.`)];
   };
   S.dIng = (c, i) => { const m = c.four[i]; return m ? [L('h3', `${m.mod}, ${m.dispPct}`), L('소본문', m.ben)] : null; };
   S.dPoint = (c, i) => {
@@ -366,7 +426,7 @@
   };
   S.dIrrLbl = c => c.irr ? [L('소본문', /민감/.test(c.input.irrResult + c.input.irrInfo) ? '민감성' : '피부 자극')] : PH('[자극 테스트 구분]');
   S.dIrr = c => c.irr ? [L('소본문', c.input.irrResult, { ev: 1 })] : PH('[피부 자극 테스트 자료 없음] 자료를 입력하면 결과 문구가 들어갑니다 · 없으면 디자인에서 제외');
-  S.dIrrInfo = c => c.input.irrInfo ? [L('캡션', c.input.irrInfo, { ev: 1 })] : null;
+  S.dIrrInfo = c => c.input.irrInfo ? [L('캡션', c.input.irrInfo, { ev: 1 })] : PH('[시험 기관 · 기간]');
   S.dSum = c => { const s = c3(c, 0).d.sum; return [L('headline', s[0]), L('headline', s[1]), L('title', c.title, { name: 1 })]; };
   S.dTex = c => {
     const ks = c.mains.slice(0, 2).map(m => m.dispPct);
@@ -376,7 +436,7 @@
   S.dHowH = c => [L('h3', c.title, { name: 1 })];
   S.dHow = c => { const out = []; usageSteps(c).slice(0, 3).forEach((s, k) => { out.push(L('label', `STEP ${pad2(k + 1)}`)); out.push(L('body', s)); }); return out; };
   S.dTip = c => [L('label', 'TIP'), L('body', fill(c.K.tip, { name: c.title }))];
-  S.dRtLine = c => [L('배지', c.input.line || c3(c, 0).en)];
+  S.dRtLine = c => [L('배지', c.input.line || c.brand.lineDefault || c3(c, 0).en)];
   S.dRtTitle = c => [L('headline', c.mains[0] ? c.mains[0].disp : c.title)];
   S.dRtSub = c => [L('소본문', `${c3(c, 0).label} · ${c3(c, 1).label} 케어`)];
   S.dLineup = (c, i) => i === 0 ? [L('소본문', c.title, { name: 1 })] : PH(`[라인업 제품 ${i + 1}]`);
@@ -416,7 +476,7 @@
     return [L('대제목', m.en), L('headline', m.mod), ...(m.story || [m.ben]).map(t => L('소본문', t))];
   };
   S.vSciPts = c => { const m = c.sig || c.mains[0]; return [L('소본문', ((m && m.pts) || c3(c, 0).v.pts).join('   ·   '))]; };
-  const soft = c => c.irr ? '저자극' : '부드러운';
+  const soft = c => (c.irr || (c.D && c.D.lowIrr)) ? '저자극' : '부드러운';
   const careW = c => c.K.care || c3(c, 0).care;
   const NOUN2 = { moist: '보습', soothe: '컨디셔닝', smooth: '결 정돈', glow: '컨디셔닝', barrier: '컨디셔닝', nourish: '영양', fresh: '밸런스', clean: '세정', cool: '쿨링', powder: '원물 케어' };
   const extraCats = c => { const out = []; c.support.concat(c.mains).forEach(m => { if (m && out.indexOf(m.c) < 0) out.push(m.c); }); return out; };
@@ -476,8 +536,8 @@
     return out;
   };
   S.vIrrH = c => c.irr ? [L('headline', '피부 자극 테스트 완료')] : PH('[피부 자극 테스트 자료 없음] 자료를 입력하면 제목 · 결과가 들어갑니다 · 없으면 디자인에서 제외');
-  S.vIrrB = c => c.irr ? [L('소본문', c.input.irrResult, { ev: 1 }), L('캡션', '*모든 사람에게 자극이 없다는 의미는 아닙니다.')] : null;
-  S.vIrrInfo = c => c.input.irrInfo ? [L('캡션', c.input.irrInfo, { ev: 1 })] : null;
+  S.vIrrB = c => c.irr ? [L('소본문', c.input.irrResult, { ev: 1 }), L('캡션', '*모든 사람에게 자극이 없다는 의미는 아닙니다.')] : PH('[자극 테스트 결과 문구 자리]');
+  S.vIrrInfo = c => c.input.irrInfo ? [L('캡션', c.input.irrInfo, { ev: 1 })] : PH('[시험 기관 · 기간 · 보고서 이미지 자리]');
   S.vRecH = () => [L('headline', '이런 분들께 추천드립니다!')];
   S.vRec = (c, i) => {
     const r = [c.K.rec, c.K.rec2 || c3(c, 1).v.rec, c3(c, 0).v.rec, ['식물 유래 성분으로 부담 없는', `${c.K.stage.replace(/(부터|까지|으로|로|에서)$/, '').trim()} 루틴을 채우고 싶으신 분`]][i];
@@ -506,6 +566,7 @@
   };
 
   function generate(brandId, input, layout) {
+    if (input && input.desc == null) input.desc = descOf(input);
     const brand = Object.assign({ id: brandId }, G.CONFIG.brands[brandId]);
     const c = buildContext(brand, input);
     const blocks = [];
@@ -517,7 +578,7 @@
       lines = lines.filter(Boolean).filter(l => l.t !== '');
       if (!lines.length) return;
       const ph = lines.length === 1 && lines[0].ph;
-      blocks.push({ id: b.id, type: b.type, label: (LABELS[b.type] || b.type) + (b.i != null ? ' ' + (b.i + 1) : ''), x: b.x, y: b.y, w: b.w, align: b.align || 'center', ph: ph ? 1 : 0, lines });
+      blocks.push({ id: b.id, type: b.type, label: (LABELS[b.type] || b.type) + (b.i != null ? ' ' + (b.i + 1) : ''), x: b.x, y: b.y, w: b.w, h: b.h || 0, fs: b.fs || 0, align: b.align || 'center', ph: ph ? 1 : 0, lines });
     });
     return {
       blocks,
@@ -525,5 +586,5 @@
         protect: [c.title, input.name, c.nameEn].concat(c.an.items.map(e => e.k)).concat(c.mains.map(m => m.disp)).concat(c.groups.map(g => g.disp)) }
     };
   }
-  G.GEN = { analyze, recommend, detectType, englishName, splitVolume, checkInput, generate, josa, norm, lookup, LABELS, buildContext };
+  G.GEN = { parseDesc, descOf, analyze, recommend, detectType, englishName, splitVolume, checkInput, generate, josa, norm, lookup, LABELS, buildContext };
 })(typeof window !== 'undefined' ? window : globalThis);

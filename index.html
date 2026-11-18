@@ -7,8 +7,8 @@
 <title>상세페이지 문안 자동화</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link rel="stylesheet" href="assets/style.css?v=2">
-<link rel="stylesheet" href="assets/patch.css?v=2">
+<link rel="stylesheet" href="assets/style.css?v=3">
+<link rel="stylesheet" href="assets/patch.css?v=3">
 </head>
 <body>
 <!-- 1. 비밀번호 -->
@@ -52,7 +52,7 @@
         <div>
           <div class="brand-chip" id="inBrand"></div>
           <h2 class="h2">제품 정보 입력</h2>
-          <p class="muted">입력템플릿(Word)을 올리거나 아래 칸에 바로 입력하세요. <b>제품명 · 용량 · 전성분</b>만 있으면 됩니다. 대표성분은 비워 두면 전성분에서 자동으로 고릅니다.</p>
+          <p class="muted">입력템플릿(Word)을 올리거나 아래 칸에 바로 입력하세요. <b>제품명 · 용량 · 제품 설명 · 전성분</b>만 있으면 됩니다. 대표성분은 비워 두면 전성분에서 자동으로 고릅니다.</p>
         </div>
         <a class="btn ghost" id="btnTpl" download>입력템플릿 받기 (.docx)</a>
       </div>
@@ -67,6 +67,9 @@
             <label class="fld"><span>제품명 <i>*</i></span><input id="fName" placeholder="예) 엑토인 1% 레스큐 토너"></label>
             <label class="fld w160"><span>용량 <i>*</i></span><input id="fVol" placeholder="예) 200ml"></label>
           </div>
+          <label class="fld"><span>제품 설명 <i>*</i> <em>제품 포인트 · 제형 · 피부 고민 · 강조 성분을 2~5줄로 · 전성분과 함께 분석해 상세 문안 전체에 반영됩니다</em></span>
+            <textarea id="fDesc" rows="4" placeholder="예) 엑토인 1%와 판테놀 2.7%를 고함량으로 담은 고보습 에센스 토너. 건조함으로 가려운 피부, 관리 후 당기고 예민해진 피부를 위한 보습 진정 케어. 우유처럼 밀키한 제형으로 끈적임 없이 흡수."></textarea></label>
+          <div class="desc-hint" id="descHint"></div>
           <div class="fld"><span>대표성분 (최대 3개) <em>비우면 자동 추천 · 오른쪽 성분 목록에서 클릭해도 선택됩니다</em></span>
             <div class="row3">
               <input id="fM1" placeholder="대표성분 1"><input id="fM2" placeholder="대표성분 2"><input id="fM3" placeholder="대표성분 3">
@@ -153,14 +156,15 @@
   </main>
 </div>
 <div id="toast" class="toast"></div>
-<script src="js/config.js?v=2"></script>
-<script src="js/ingredients.js"></script>
-<script src="js/tone.js?v=2"></script>
-<script src="js/compliance.js"></script>
-<script src="js/generator.js?v=2"></script>
-<script src="js/files.js"></script>
-<script src="layouts/drsthe/layout.js?v=2"></script>
-<script src="layouts/velinic/layout.js?v=2"></script>
-<script src="js/app.js"></script>
+<script src="js/config.js?v=3"></script>
+<script src="js/ingredients.js?v=3"></script>
+<script src="js/tone.js?v=3"></script>
+<script src="js/compliance.js?v=3"></script>
+<script src="js/generator.js?v=3"></script>
+<script src="js/files.js?v=3"></script>
+<script src="layouts/drsthe/layout.js?v=3"></script>
+<script src="layouts/velinic/layout.js?v=3"></script>
+<script src="js/app.js?v=3"></script>
+<script src="js/fit.js?v=3"></script>
 </body>
 </html>

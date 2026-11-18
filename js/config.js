@@ -59,21 +59,23 @@ window.CONFIG = {
       }
     }
   },
-  /* 문안 역할별 스타일 (1440px 폭 기준 px). 엑셀 글자 크기는 자동 환산됩니다. */
+  /* 문안 역할별 기본 글자 크기 (1440px 폭 기준 px · 엑셀 11pt ≈ 25px)
+     실제 크기는 js/fit.js 가 박스 크기(엑셀 텍스트박스 크기)에 맞춰 자동 조절합니다. */
   roles: {
-    '대제목': { px: 50, b: 1, color: '#111827' },
-    title:    { px: 54, b: 1, color: '#111827' },
-    en:       { px: 24, b: 0, color: '#374151' },
-    headline: { px: 34, b: 1, color: '#111827' },
-    h3:       { px: 25, b: 1, color: '#111827' },
-    body:     { px: 22, b: 0, color: '#111827' },
-    '소본문': { px: 19, b: 0, color: '#1F2937' },
-    '캡션':   { px: 15, b: 0, color: '#4B5563' },
-    '배지':   { px: 19, b: 1, color: 'accent' },
-    eyebrow:  { px: 17, b: 1, color: 'accent', ls: 1 },
-    keypoint: { px: 19, b: 1, color: 'accent' },
-    label:    { px: 21, b: 1, color: '#111827' },
-    meta:     { px: 17, b: 0, color: '#6B7280' },
-    note:     { px: 15, b: 0, color: '#6B7280' }
+    '대제목': { px: 66, b: 1, color: '#111827' },
+    title:    { px: 80, b: 1, color: '#111827' },
+    en:       { px: 34, b: 0, color: '#374151' },
+    headline: { px: 42, b: 1, color: '#111827' },
+    h3:       { px: 30, b: 1, color: '#111827' },
+    body:     { px: 27, b: 0, color: '#111827' },
+    '소본문': { px: 25, b: 0, color: '#1F2937' },
+    sm:       { px: 24, b: 0, color: '#1F2937' },
+    '캡션':   { px: 21, b: 0, color: '#4B5563' },
+    '배지':   { px: 27, b: 1, color: 'accent' },
+    eyebrow:  { px: 24, b: 1, color: 'accent', ls: 1 },
+    keypoint: { px: 27, b: 1, color: 'accent' },
+    label:    { px: 28, b: 1, color: '#111827' },
+    meta:     { px: 21, b: 0, color: '#6B7280' },
+    note:     { px: 19, b: 0, color: '#6B7280' }
   }
 };
