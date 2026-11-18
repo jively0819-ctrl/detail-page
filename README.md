@@ -40,7 +40,7 @@ js/compliance.js           화장품법 표현 검사 규칙
 js/generator.js            문안 생성 엔진 (제품유형별 사용법·텍스처 포함)
 js/files.js                Word 읽기 / Excel 만들기
 layouts/drsthe/            닥터에스떼 상세 이미지 + 문안 위치(layout.js)
-layouts/velinic/           벨리닉 상세 이미지 + 문안 위치 (현재 임시 이미지)
+layouts/velinic/           벨리닉 상세 이미지(고마쥬 멜팅 봄므) + 문안 위치
 templates/                 간편 입력템플릿(.docx)
 tools/password.html        비밀번호 해시 만들기
 ```
@@ -51,16 +51,13 @@ tools/password.html        비밀번호 해시 만들기
 2. 새 비밀번호를 입력 → 해시 복사
 3. GitHub에서 `js/config.js` 열기 → 연필(Edit) → `passwordHash: '...'` 값을 붙여넣기 → Commit
 
-## 5. 벨리닉 상세 이미지 넣기
+## 5. 상세 이미지(레이아웃) 교체하기
 
-현재 벨리닉은 임시 배경입니다. 실제 상세 이미지를 받으면:
+벨리닉은 '고마쥬 멜팅 봄므' 상세 이미지 10장(GIF는 문구가 모두 나온 마지막 장면을 JPG로 변환)이 적용되어 있습니다. 다른 상세 이미지로 바꾸려면:
 
-1. 이미지를 폭 1440px로 맞춰 `layouts/velinic/img/01.jpg, 02.jpg …` 순서로 교체(업로드)합니다.
-2. `layouts/velinic/layout.js`의 `images` 목록에서 각 이미지의 높이(`h`, px)를 실제 높이로 고칩니다. 장수가 다르면 항목을 추가하거나 삭제합니다.
-3. 사이트에서 벨리닉 문안을 하나 생성 → [위치 조정]을 켜고 박스를 상세 이미지의 문안 위치로 끌어 옮깁니다.
-4. 오른쪽 아래 [현재 위치를 레이아웃 파일로 내보내기] → 내려받은 `layout.js`로 `layouts/velinic/layout.js`를 교체합니다.
-
-닥터에스떼도 같은 방법으로 상세 이미지나 문안 위치를 바꿀 수 있습니다.
+1. 이미지를 폭 1440px로 맞춰 `layouts/<브랜드>/img/01.jpg, 02.jpg …` 순서로 업로드합니다.
+2. `layout.js`의 images 목록에 각 이미지 높이(h)를 적습니다.
+3. 사이트에서 문안을 생성한 뒤 [레이아웃 편집]으로 박스 위치를 맞추고, 내보낸 layout.js로 교체합니다.
 
 ## 6. 성분 · 표현 규칙 추가
 

@@ -29,7 +29,7 @@ window.CONFIG = {
     },
     velinic: {
       id: 'velinic', name: '벨리닉', en: 'VELINIC', accent: '#8A6A5C',
-      desc: '홈케어 라인 · 레이아웃 이미지 교체 필요',
+      desc: '홈케어 라인 · 고마쥬 멜팅 봄므 레이아웃 적용',
       template: 'templates/velinic_template.docx',
       templateName: '벨리닉_상세페이지_입력템플릿_간편.docx',
       lineDefault: 'VELINIC',
