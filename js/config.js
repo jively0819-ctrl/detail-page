@@ -5,7 +5,7 @@
    ========================================================= */
 window.CONFIG = {
   appName: '상세페이지 문안 자동화',
-  // 기본 비밀번호: detail2026!   (반드시 변경해서 사용하세요)
+  // 기본 비밀번호: loveu
   passwordHash: '7808e25412177aa742da07469de5bdf7a7f81a2bfde242fcf49d743caeab1aa9',
   defaultOpacity: 30,          // 배경 상세 이미지 불투명도(%) — 30% 이하 권장
   maxOpacity: 30,
