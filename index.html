@@ -7,8 +7,9 @@
 <title>상세페이지 문안 자동화</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link rel="stylesheet" href="assets/style.css?v=3">
-<link rel="stylesheet" href="assets/patch.css?v=3">
+<link rel="stylesheet" href="assets/style.css?v=4">
+<link rel="stylesheet" href="assets/patch.css?v=4">
+<link rel="stylesheet" href="assets/v4.css?v=4">
 </head>
 <body>
 <!-- 1. 비밀번호 -->
@@ -78,7 +79,7 @@
           <label class="fld"><span>전성분 <i>*</i> <em>상품정보제공고시의 전성분을 그대로 붙여넣기</em></span>
             <textarea id="fInci" rows="7" placeholder="정제수, 글리세린, 부틸렌글라이콜, ..."></textarea></label>
           <details class="opt" id="optBox">
-            <summary>선택 입력 <em>영문명 · 함량 · 기능성 · 시험자료 · 고시정보 (비우면 자동/생략)</em></summary>
+            <summary>선택 입력 <em>영문명 · 함량 · 복합 성분 · 기능성 · 시험자료 · 고시정보 (비우면 자동/생략)</em></summary>
             <div class="row2">
               <label class="fld"><span>영문 제품명</span><input id="fEn" placeholder="비우면 자동 변환"></label>
               <label class="fld"><span>라인명 (인트로 상단)</span><input id="fLine" placeholder="예) Sensitive"></label>
@@ -88,17 +89,20 @@
               <label class="fld w160"><span>기능성 화장품</span>
                 <select id="fFunc"><option value="">해당 없음</option><option>미백</option><option>주름개선</option><option>미백, 주름개선</option><option>자외선차단</option><option>미백, 주름개선, 자외선차단</option></select></label>
             </div>
+            <label class="fld"><span>대표성분 구성 (복합 성분) <em>전성분에 흩어진 성분을 대표성분 하나로 묶을 때 · 한 줄에 하나 · <b>이름 (영문) = 구성 성분, 구성 성분 …</b> · 뒤에 <b>| 수식어 / 설명</b>을 붙이면 문구도 지정</em></span>
+              <textarea id="fComplex" rows="3" placeholder="예) 8종 마이크로바이옴 (8 Microbiome Complex) = 스트렙토코쿠스 테르모필루스발효물, 흑효모발효물, 비피다발효여과물, 비피다발효용해물, 락토바실러스발효용해물, 락토코쿠스발효용해물, 효모발효여과물, 마이크로코쿠스용해물 | 무너진 피부 밸런스 유지 / 약해진 피부 환경을 건강하게 가꾸는 마이크로바이옴 콤플렉스"></textarea></label>
+            <div class="cx-detect" id="cxDetect"></div>
             <label class="fld"><span>기능성 심사(보고)번호</span><input id="fFuncNo" placeholder="기능성일 때만"></label>
             <div class="sep">시험 자료 <em>있을 때만 · 보고서 결론 문구 그대로</em></div>
             <label class="fld"><span>인체적용시험명</span><input id="fClinT" placeholder="예) 보습을 통해 건조에 의한 가려움의 일시적 완화"></label>
             <label class="fld"><span>인체적용시험 결과</span><textarea id="fClinR" rows="2"></textarea></label>
             <label class="fld"><span>인체적용시험 정보 (기관, 기간, 인원)</span><input id="fClinI" placeholder="예) 한국피부과학연구원, 2026.07.27~08.24, 21명"></label>
-            <label class="fld"><span>피부자극테스트 결과</span><input id="fIrrR" placeholder="예) 피부 일차 자극 평가 결과, 평균 피부 반응도 0.00으로 무자극 판정"></label>
-            <label class="fld"><span>피부자극테스트 정보 (기관, 기간)</span><input id="fIrrI"></label>
+            <label class="fld"><span>피부자극테스트 결과 <em>보고서 결론 문장 그대로 · 평균 피부 반응도 숫자(예: 0.00)만 넣어도 문장이 완성됩니다</em></span><input id="fIrrR" placeholder="예) 민감성 피부 첩포에 의한 일차 자극 평가 결과, 본 시험 제품의 평균 피부 반응도는 0.00으로, 'no irritancy'로 판정되었다."></label>
+            <label class="fld"><span>피부자극테스트 정보 (기관, 기간)</span><input id="fIrrI" placeholder="예) 한국바이오임상연구센터 26.09.14 ~ 26.09.16"></label>
             <div class="sep">사용법 · 고시정보 <em>비우면 제품유형 기본 사용법 / 브랜드 기본값</em></div>
             <label class="fld"><span>사용법 (한 줄에 한 단계)</span><textarea id="fUsage" rows="3"></textarea></label>
             <div class="row2">
-              <label class="fld"><span>화장품제조업자</span><input id="fMaker"></label>
+              <label class="fld"><span>화장품제조업자 <em>자동</em></span><input id="fMaker" placeholder="제품 내 별도 표기 (자동)" readonly></label>
               <label class="fld"><span>화장품책임판매업자</span><input id="fSeller"></label>
             </div>
             <div class="row2">
@@ -148,6 +152,7 @@
             박스 안 글자를 클릭해 바로 수정하세요. Enter로 줄 추가, 비운 줄은 삭제됩니다.<br>
             주황 테두리 박스는 시험 자료 등 입력이 더 필요한 자리입니다. 자료가 없으면 ×로 삭제하세요.<br>
             <span class="kbd">위치 조정</span>을 켜면 박스를 끌어 옮길 수 있습니다.<br>
+            <span class="kbd">＋ 텍스트 상자</span>를 누르고 원하는 위치를 클릭하면 새 문구 박스가 생깁니다. (파란 점선 박스 · 엑셀에도 포함)<br>
             <button class="link" id="btnLayoutExport">현재 위치를 레이아웃 파일로 내보내기</button>
           </div>
         </aside>
@@ -156,15 +161,18 @@
   </main>
 </div>
 <div id="toast" class="toast"></div>
-<script src="js/config.js?v=3"></script>
-<script src="js/ingredients.js?v=3"></script>
-<script src="js/tone.js?v=3"></script>
-<script src="js/compliance.js?v=3"></script>
-<script src="js/generator.js?v=3"></script>
-<script src="js/files.js?v=3"></script>
-<script src="layouts/drsthe/layout.js?v=3"></script>
-<script src="layouts/velinic/layout.js?v=3"></script>
-<script src="js/app.js?v=3"></script>
-<script src="js/fit.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
+<script src="js/ingredients.js?v=4"></script>
+<script src="js/tone.js?v=4"></script>
+<script src="js/v4-tone.js?v=4"></script>
+<script src="js/compliance.js?v=4"></script>
+<script src="js/generator.js?v=4"></script>
+<script src="js/files.js?v=4"></script>
+<script src="layouts/drsthe/layout.js?v=4"></script>
+<script src="layouts/velinic/layout.js?v=4"></script>
+<script src="js/v4-pre.js?v=4"></script>
+<script src="js/app.js?v=4"></script>
+<script src="js/fit.js?v=4"></script>
+<script src="js/v4-ui.js?v=4"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@
    상세페이지 자동화 — 공통 설정
    - 비밀번호 변경: tools/password.html 에서 새 해시를 만든 뒤 passwordHash 값을 교체
    - 브랜드별 상품정보제공고시 기본값은 brands.*.info 에서 수정
+   - 화장품제조업자는 두 브랜드 모두 「제품 내 별도 표기」로 고정 (v4)
    - 벨리닉 브랜드 고정 문구(브랜드 스토리 · 벨리닉 사이언스)는 brands.velinic.story 에서 수정
    ========================================================= */
 window.CONFIG = {
@@ -19,7 +20,7 @@ window.CONFIG = {
       lineDefault: 'Sensitive',
       infoPrefix: '',
       info: {
-        maker: '주식회사 에스엠씨',
+        maker: '제품 내 별도 표기',
         seller: '(주)마더스코스메틱',
         phone: '02-6958-8664',
         expiry: '제품 내 별도 표기',
@@ -34,7 +35,7 @@ window.CONFIG = {
       lineDefault: '',
       infoPrefix: '벨리닉 ',
       info: {
-        maker: '',
+        maker: '제품 내 별도 표기',
         seller: '(주)마더스코스메틱',
         phone: '',
         expiry: '제품 내 별도 표기',
