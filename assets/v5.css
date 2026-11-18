@@ -1,0 +1,7 @@
+/* v5 — 상세페이지 오른쪽 위 [새 텍스트] 아이콘 */
+.v5-fab { position: sticky; top: 12px; z-index: 40; height: 0; display: flex; justify-content: flex-end; padding-right: 20px; pointer-events: none; }
+.v5-fab-btn { pointer-events: auto; display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px 0 10px; border: 1px solid #D1D5DB; border-radius: 8px; background: #fff; color: #111827; font-size: 13px; font-weight: 600; cursor: pointer; }
+.v5-fab-btn:hover { border-color: #111827; }
+.v5-fab-btn.on { background: #2563EB; border-color: #2563EB; color: #fff; }
+.v5-fab-btn.on svg path[stroke="#fff"] { stroke: #2563EB; }
+.v5-fab-btn.on svg circle { fill: #fff; }
