@@ -1,0 +1,7 @@
+/* v2 보정 — 문구 박스가 상세 이미지의 원래 문구 자리에 촘촘하게 들어가도록 여백만 줄입니다. (기존 style.css 디자인은 그대로) */
+.canvas .blk { padding: 10px 16px !important; box-sizing: border-box; }
+.canvas .blk .ed .ln { line-height: 1.35 !important; word-break: keep-all; }
+.canvas .blk.left .ed .ln { text-align: left; }
+.canvas .blk.center .ed .ln { text-align: center; }
+.canvas .blk.ph { border-color: #F59E0B !important; background: #FFFBEB !important; }
+.canvas .cv-bg { display: block; width: 1440px; max-width: none; }

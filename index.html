@@ -7,10 +7,10 @@
 <title>상세페이지 문안 자동화</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=2">
+<link rel="stylesheet" href="assets/patch.css?v=2">
 </head>
 <body>
-
 <!-- 1. 비밀번호 -->
 <section id="gate" class="gate">
   <form class="gate-card" id="gateForm" autocomplete="off">
@@ -22,7 +22,6 @@
     <p id="gateErr" class="gate-err"></p>
   </form>
 </section>
-
 <!-- 앱 -->
 <div id="app" class="app hidden">
   <aside class="side">
@@ -38,7 +37,6 @@
       <button class="link" id="btnLock">잠금</button>
     </div>
   </aside>
-
   <main class="main">
     <!-- 2. 브랜드 선택 -->
     <section id="vBrand" class="view">
@@ -47,7 +45,6 @@
       <p class="muted">선택한 브랜드의 기존 상세페이지 레이아웃에 맞춰 문안이 배치됩니다.</p>
       <div class="brand-grid" id="brandGrid"></div>
     </section>
-
     <!-- 3. 입력 -->
     <section id="vInput" class="view hidden">
       <div class="steps"><span class="done">1 브랜드 선택</span><span class="on">2 정보 입력</span><span>3 문안 편집 · 다운로드</span></div>
@@ -55,45 +52,42 @@
         <div>
           <div class="brand-chip" id="inBrand"></div>
           <h2 class="h2">제품 정보 입력</h2>
-          <p class="muted">입력템플릿(Word)을 올리거나 아래 칸에 바로 입력하세요. <b>제품명 · 용량 · 대표성분 · 전성분</b>만 있으면 됩니다.</p>
+          <p class="muted">입력템플릿(Word)을 올리거나 아래 칸에 바로 입력하세요. <b>제품명 · 용량 · 전성분</b>만 있으면 됩니다. 대표성분은 비워 두면 전성분에서 자동으로 고릅니다.</p>
         </div>
         <a class="btn ghost" id="btnTpl" download>입력템플릿 받기 (.docx)</a>
       </div>
-
       <label class="drop" id="drop">
         <input type="file" id="docxFile" accept=".docx" hidden>
         <div class="drop-in"><b>입력템플릿(.docx) 업로드</b><span>파일을 끌어다 놓거나 클릭해서 선택 · 내용이 아래 칸에 자동으로 채워집니다</span></div>
       </label>
-
       <div class="input-grid">
         <div class="card">
           <div class="card-title">필수 입력</div>
           <div class="row2">
-            <label class="fld"><span>제품명 <i>*</i></span><input id="fName" placeholder="예) 프리미엄 브이-핏 모델링 마스크"></label>
-            <label class="fld w160"><span>용량 <i>*</i></span><input id="fVol" placeholder="예) 1kg"></label>
+            <label class="fld"><span>제품명 <i>*</i></span><input id="fName" placeholder="예) 엑토인 1% 레스큐 토너"></label>
+            <label class="fld w160"><span>용량 <i>*</i></span><input id="fVol" placeholder="예) 200ml"></label>
           </div>
-          <div class="fld"><span>대표성분 (최대 3개) <em>오른쪽 성분 목록에서 클릭해도 선택됩니다</em></span>
+          <div class="fld"><span>대표성분 (최대 3개) <em>비우면 자동 추천 · 오른쪽 성분 목록에서 클릭해도 선택됩니다</em></span>
             <div class="row3">
               <input id="fM1" placeholder="대표성분 1"><input id="fM2" placeholder="대표성분 2"><input id="fM3" placeholder="대표성분 3">
             </div>
           </div>
           <label class="fld"><span>전성분 <i>*</i> <em>상품정보제공고시의 전성분을 그대로 붙여넣기</em></span>
             <textarea id="fInci" rows="7" placeholder="정제수, 글리세린, 부틸렌글라이콜, ..."></textarea></label>
-
           <details class="opt" id="optBox">
             <summary>선택 입력 <em>영문명 · 함량 · 기능성 · 시험자료 · 고시정보 (비우면 자동/생략)</em></summary>
             <div class="row2">
               <label class="fld"><span>영문 제품명</span><input id="fEn" placeholder="비우면 자동 변환"></label>
-              <label class="fld"><span>라인명 (인트로 상단)</span><input id="fLine" placeholder="예) Professional"></label>
+              <label class="fld"><span>라인명 (인트로 상단)</span><input id="fLine" placeholder="예) Sensitive"></label>
             </div>
             <div class="row2">
-              <label class="fld"><span>대표성분 함량 <em>제품명에 성분명이 있으면 필수</em></span><input id="fContent" placeholder="예) 율무씨가루 5%"></label>
+              <label class="fld"><span>대표성분 함량 <em>제품명에 성분명이 있으면 필수 · 여러 개는 쉼표로</em></span><input id="fContent" placeholder="예) 엑토인 1%, 판테놀 2.7%"></label>
               <label class="fld w160"><span>기능성 화장품</span>
                 <select id="fFunc"><option value="">해당 없음</option><option>미백</option><option>주름개선</option><option>미백, 주름개선</option><option>자외선차단</option><option>미백, 주름개선, 자외선차단</option></select></label>
             </div>
             <label class="fld"><span>기능성 심사(보고)번호</span><input id="fFuncNo" placeholder="기능성일 때만"></label>
             <div class="sep">시험 자료 <em>있을 때만 · 보고서 결론 문구 그대로</em></div>
-            <label class="fld"><span>인체적용시험명</span><input id="fClinT" placeholder="예) 안면 붓기 완화 인체적용시험 완료"></label>
+            <label class="fld"><span>인체적용시험명</span><input id="fClinT" placeholder="예) 보습을 통해 건조에 의한 가려움의 일시적 완화"></label>
             <label class="fld"><span>인체적용시험 결과</span><textarea id="fClinR" rows="2"></textarea></label>
             <label class="fld"><span>인체적용시험 정보 (기관, 기간, 인원)</span><input id="fClinI" placeholder="예) 한국피부과학연구원, 2026.07.27~08.24, 21명"></label>
             <label class="fld"><span>피부자극테스트 결과</span><input id="fIrrR" placeholder="예) 피부 일차 자극 평가 결과, 평균 피부 반응도 0.00으로 무자극 판정"></label>
@@ -111,7 +105,6 @@
             <label class="fld"><span>추가 주의사항</span><input id="fCaution"></label>
           </details>
         </div>
-
         <div class="card sticky">
           <div class="card-title">전성분 분석 <span class="count" id="ingCount"></span></div>
           <div class="legend"><span class="lg sel">대표성분</span><span class="lg key">추천 후보</span><span class="lg fn">기능성 고시 성분</span><span class="lg base">베이스</span></div>
@@ -123,7 +116,6 @@
         </div>
       </div>
     </section>
-
     <!-- 4. 편집 -->
     <section id="vEdit" class="view edit hidden">
       <div class="toolbar">
@@ -151,6 +143,7 @@
           </div>
           <div class="panel-sec small muted">
             박스 안 글자를 클릭해 바로 수정하세요. Enter로 줄 추가, 비운 줄은 삭제됩니다.<br>
+            주황 테두리 박스는 시험 자료 등 입력이 더 필요한 자리입니다. 자료가 없으면 ×로 삭제하세요.<br>
             <span class="kbd">위치 조정</span>을 켜면 박스를 끌어 옮길 수 있습니다.<br>
             <button class="link" id="btnLayoutExport">현재 위치를 레이아웃 파일로 내보내기</button>
           </div>
@@ -159,16 +152,15 @@
     </section>
   </main>
 </div>
-
 <div id="toast" class="toast"></div>
-
-<script src="js/config.js"></script>
+<script src="js/config.js?v=2"></script>
 <script src="js/ingredients.js"></script>
+<script src="js/tone.js?v=2"></script>
 <script src="js/compliance.js"></script>
-<script src="js/generator.js"></script>
+<script src="js/generator.js?v=2"></script>
 <script src="js/files.js"></script>
-<script src="layouts/drsthe/layout.js"></script>
-<script src="layouts/velinic/layout.js"></script>
+<script src="layouts/drsthe/layout.js?v=2"></script>
+<script src="layouts/velinic/layout.js?v=2"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
