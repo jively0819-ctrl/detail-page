@@ -1,0 +1,62 @@
+/* v9 — 시험 보고서 · 제조사 자료 업로드 / 필수 표기 문구 / 고시 통짜 박스 */
+.v9-zones{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:2px 0 10px}
+.v9-zone{display:flex;flex-direction:column;gap:4px;border:1.5px dashed #D1D5DB;border-radius:10px;padding:16px;background:#fff;cursor:pointer;transition:border-color .12s,background .12s}
+.v9-zone:hover,.v9-zone.over{border-color:#111827;background:#FAFAFA}
+.v9-zone b{font-size:14px}
+.v9-zone span{font-size:12px;color:#6B7280;line-height:1.55}
+.v9-zone .v9-acts{margin-top:4px;color:#374151}
+.v9-paste{border:1px solid #E5E7EB;border-radius:8px;padding:10px;margin-bottom:10px;background:#F9FAFB}
+.v9-paste textarea{width:100%;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px;font-size:13px;line-height:1.55;resize:vertical;outline:none;background:#fff}
+.v9-paste-act{display:flex;gap:6px;margin-top:8px}
+.v9-files{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.v9-file{border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;background:#fff}
+.v9-fh{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
+.v9-fh b{max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v9-x{margin-left:auto;border:0;background:none;color:#9CA3AF;font-size:16px;cursor:pointer;line-height:1}
+.v9-x:hover{color:#DC2626}
+.v9-st{font-size:12px}
+.v9-st.ok{color:#047857}.v9-st.warn{color:#B45309}.v9-st.err{color:#B91C1C}.v9-st.busy{color:#6B7280}
+.v9-tb{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+.v9-tb th{width:150px;text-align:left;font-weight:600;color:#374151;padding:5px 8px 5px 0;vertical-align:top;border-top:1px solid #F1F2F4}
+.v9-tb td{padding:5px 8px 5px 0;vertical-align:top;line-height:1.5;border-top:1px solid #F1F2F4;word-break:keep-all;overflow-wrap:anywhere}
+.v9-tb td.v9-stc{width:170px;white-space:nowrap}
+.v9-b{display:inline-block;font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px}
+.v9-b.set{background:#ECFDF5;color:#047857}.v9-b.same{background:#F3F4F6;color:#6B7280}.v9-b.keep{background:#FFFBEB;color:#92400E}
+.v9-note{font-size:12px;line-height:1.55;padding:7px 10px;border-radius:6px;margin-top:8px;background:#F9FAFB;border:1px solid #E5E7EB;color:#374151}
+.v9-note.warn{background:#FFFBEB;border-color:#FDE68A;color:#92400E}
+.v9-req{font-size:12px;margin-bottom:12px}
+.v9-req:empty{display:none}
+.v9-req-h{font-weight:600;margin-bottom:6px}
+.v9-req ul{margin:0;padding:0;list-style:none;border:1px solid #D1FAE5;border-radius:8px;background:#F0FDF4}
+.v9-req li{padding:6px 10px;border-top:1px solid #D1FAE5;line-height:1.5;color:#065F46}
+.v9-req li:first-child{border-top:0}
+.v9-req li.ph{color:#92400E;background:#FFFBEB}
+.v9-sec{display:inline-block;min-width:78px;font-weight:600;color:#6B7280;margin-right:6px}
+.v9-manual{border-top:1px solid #EEF0F3;padding-top:12px;margin-top:4px}
+.v9-manual>summary{cursor:pointer;font-weight:600;font-size:13px;margin-bottom:14px;list-style:none}
+.v9-manual>summary::-webkit-details-marker{display:none}
+.v9-manual>summary:before{content:"+ ";color:#6B7280}
+.v9-manual[open]>summary:before{content:"− "}
+.v9-manual>summary em{font-style:normal;font-weight:400;color:#9CA3AF;margin-left:6px;font-size:12px}
+/* 편집 화면 — 필수 표기 박스 */
+.canvas .blk[data-id^="n9_"]{border:2px dashed #34D399 !important;background:rgba(255,255,255,.94) !important}
+.canvas .blk[data-id^="n9_"].ph{border-color:#F59E0B !important;background:#FFFBEB !important}
+.canvas .blk[data-id^="n9_"] .ln{color:#374151 !important}
+/* 편집 화면 — 필수 표기 점검 패널 */
+.v9-ck{display:flex;gap:8px;padding:8px 0;border-top:1px solid #F1F2F4;font-size:12px;line-height:1.5}
+.v9-dot{flex:none;width:8px;height:8px;border-radius:50%;margin-top:5px;background:#10B981}
+.v9-ck.miss .v9-dot{background:#DC2626}.v9-ck.ph .v9-dot{background:#F59E0B}
+.v9-ckt{min-width:0;flex:1}
+.v9-ckt em{font-style:normal;font-weight:700;color:#B91C1C;margin-left:4px}
+.v9-ck.ph .v9-ckt em{color:#B45309}
+.v9-ckx{color:#6B7280;word-break:keep-all;overflow-wrap:anywhere}
+.v9-ck.ok .v9-ckx{display:none}
+.v9-cka{display:flex;gap:6px;margin-top:4px}
+.v9-cka button{font-size:11px;height:24px;padding:0 8px;border-radius:5px;border:1px solid #E5E7EB;background:#fff;cursor:pointer}
+.v9-cka button:hover{border-color:#111827}
+/* 상품정보제공고시 — 통짜 네모 박스 · 문구만 (v7 방식 확정) */
+.canvas #b-infoAll,.canvas #b-vInfoAll{border-radius:0 !important;border:2px solid #9CA3AF !important;background:#fff !important;padding:28px 44px !important;justify-content:flex-start !important}
+.canvas #b-infoAll .ln,.canvas #b-vInfoAll .ln{line-height:1.6 !important;color:#1F2937 !important}
+.canvas #b-infoAll .ln+.ln,.canvas #b-vInfoAll .ln+.ln{margin-top:6px !important}
+.canvas #b-infoAll .ln.r-h3,.canvas #b-vInfoAll .ln.r-h3{margin-bottom:10px;color:#111827 !important}
+@media (max-width:900px){.v9-zones{grid-template-columns:1fr}}

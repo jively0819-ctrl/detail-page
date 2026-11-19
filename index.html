@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="assets/patch.css?v=4">
 <link rel="stylesheet" href="assets/v4.css?v=4">
 <link rel="stylesheet" href="assets/v5.css?v=5">
+<link rel="stylesheet" href="assets/v9.css?v=9">
 </head>
 <body>
 <!-- 1. 비밀번호 -->
@@ -80,7 +81,29 @@
           <label class="fld"><span>전성분 <i>*</i> <em>상품정보제공고시의 전성분을 그대로 붙여넣기</em></span>
             <textarea id="fInci" rows="7" placeholder="정제수, 글리세린, 부틸렌글라이콜, ..."></textarea></label>
           <details class="opt" id="optBox">
-            <summary>선택 입력 <em>영문명 · 함량 · 복합 성분 · 기능성 · 시험자료 · 고시정보 (비우면 자동/생략)</em></summary>
+            <summary>선택 입력 <em>시험 보고서 · 제조사 자료 파일만 올리면 아래 칸이 자동으로 채워집니다 (없으면 비워 두세요)</em></summary>
+            <div class="v9-zones" id="v9Zones">
+              <div class="v9-zone" data-zone="clin">
+                <input type="file" multiple accept=".pdf,.docx,.hwpx,.txt,.png,.jpg,.jpeg,.webp" hidden>
+                <b>인체적용시험 결과 보고서</b>
+                <span>효능 시험 · 피부자극 시험 보고서 · 여러 개 가능<br>PDF · Word · 한글(.hwpx) · 이미지(스캔본은 OCR)</span>
+                <span class="v9-acts">파일을 끌어다 놓거나 클릭 · <button type="button" class="link" data-paste>결론 문구 붙여넣기</button></span>
+              </div>
+              <div class="v9-zone" data-zone="maker">
+                <input type="file" multiple accept=".pdf,.docx,.hwpx,.xlsx,.txt,.csv,.png,.jpg,.jpeg,.webp" hidden>
+                <b>제조사 추가 자료</b>
+                <span>제품 사양서 · 원료 함량 · 전성분 · 특허 · 비건 등 인증 · 사용법 · 사용기한<br>PDF · Word · Excel · 한글(.hwpx) · 이미지</span>
+                <span class="v9-acts">파일을 끌어다 놓거나 클릭 · <button type="button" class="link" data-paste>내용 붙여넣기</button></span>
+              </div>
+            </div>
+            <div class="v9-paste hidden" id="v9Paste">
+              <textarea id="v9PasteTxt" rows="5"></textarea>
+              <div class="v9-paste-act"><button type="button" class="btn primary sm" id="v9PasteGo">분석해서 채우기</button><button type="button" class="btn ghost sm" id="v9PasteX">닫기</button></div>
+            </div>
+            <div class="v9-files" id="v9Files"></div>
+            <div class="v9-req" id="v9Req"></div>
+            <details class="v9-manual" id="v9Manual">
+              <summary>추출값 확인 · 직접 입력 <em>영문명 · 라인명 · 함량 · 복합 성분 · 기능성 · 시험 결과 · 사용법 · 고시정보</em></summary>
             <div class="row2">
               <label class="fld"><span>영문 제품명</span><input id="fEn" placeholder="비우면 자동 변환"></label>
               <label class="fld"><span>라인명 (인트로 상단)</span><input id="fLine" placeholder="예) Sensitive"></label>
@@ -111,6 +134,13 @@
               <label class="fld"><span>사용기한</span><input id="fExpiry" placeholder="예) 제조일로부터 36개월"></label>
             </div>
             <label class="fld"><span>추가 주의사항</span><input id="fCaution"></label>
+            <div class="sep">필수 표기 근거 <em>제조사 자료에서 자동 · 상세페이지 주석(*)으로 들어갑니다</em></div>
+              <div class="row2">
+                <label class="fld"><span>특허번호</span><input id="fPatent" placeholder="예) 제10-1234567호"></label>
+                <label class="fld"><span>인증 (비건 등)</span><input id="fCert" placeholder="예) 비건 인증 · EVE VEGAN"></label>
+              </div>
+              <label class="fld"><span>기타 필수 표기 문구 <em>제조사 요청 주석 등 · 한 줄에 하나</em></span><textarea id="fReqExtra" rows="2" placeholder="예) *본 원료는 원료사 자료에 기반함"></textarea></label>
+            </details>
           </details>
         </div>
         <div class="card sticky">
@@ -175,6 +205,7 @@
 <script src="js/v5-fix.js?v=5"></script>
 <script src="js/v6-fix.js?v=6"></script>
 <script src="js/v7-info.js?v=7"></script>
+<script src="js/v9-docs.js?v=9"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
