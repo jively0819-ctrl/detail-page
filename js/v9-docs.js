@@ -168,7 +168,7 @@
     if (ext === 'pdf') {
       var pdf = await pdfOpen(buf);
       var t = await pdfText(pdf);
-      var scanned = t.replace(/\s/g, '').length < 40 * pdf.numPages;
+      var scanned = (G.V10 && G.V10.isScanned) ? G.V10.isScanned(t, pdf) : t.replace(/\s/g, '').length < 40 * pdf.numPages;
       return { text: t, scanned: scanned, pdf: pdf };
     }
     if (ext === 'docx') return { text: await zipText(buf, function (n) { return /^word\/(document|footnotes|endnotes)\.xml$/.test(n); }) };
