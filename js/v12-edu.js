@@ -1,5 +1,6 @@
 /* =========================================================
-   v12 — 교육자료(PPT · PDF · Word)로 제품 포인트 잡기 + 빈 문안 채우기
+   v12(v13 수정) — 교육자료(PPT · PDF · Word)로 제품 포인트 잡기 + 빈 문안 채우기
+   v13: [최종 단상자 디자인 업로드] 칸 자리를 [교육자료 업로드 (PPT)] 칸으로 바꿈
    index.html 맨 아래, 다른 js 파일을 모두 불러온 뒤 마지막 줄에 불러옵니다.
 
    [1] 입력 화면에 [교육자료 업로드] 칸 추가
@@ -909,8 +910,9 @@
     try { var s = G.localStorage.getItem(OPT.storeKey); if (s) V12.state = JSON.parse(s); } catch (e) { V12.state = null; }
   }
   var CSS = '' +
+    '#v10Carton{display:none!important}' +
     '.v12-wrap{margin:10px 0 4px}' +
-    '.v12-drop{display:block;border:1.5px dashed #c7cdd6;border-radius:8px;padding:14px 16px;cursor:pointer;background:#fafbfc;text-align:center}' +
+    '.v12-drop{display:block;border:1.5px dashed #c7cdd6;border-radius:10px;padding:14px 16px;cursor:pointer;background:#fafbfc;text-align:center}' +
     '.v12-drop b{display:block;font-size:14px;margin-bottom:4px}' +
     '.v12-drop span{font-size:12px;color:#6b7280;line-height:1.5}' +
     '.v12-drop:hover,.v12-drop.v12-over{border-color:#2563eb;background:#f5f8ff}' +
@@ -1017,15 +1019,18 @@
     if (old) old.remove();
     var drop = doc.getElementById('drop');
     if (!drop || doc.getElementById('v12Edu')) return;
-    var style = doc.createElement('style');
-    style.textContent = CSS;
-    doc.head.appendChild(style);
+    if (!doc.getElementById('v12EduCss')) {
+      var style = doc.createElement('style');
+      style.id = 'v12EduCss';
+      style.textContent = CSS;
+      doc.head.appendChild(style);
+    }
     var box = doc.createElement('div');
     box.id = 'v12Edu';
     box.className = 'v12-wrap';
     box.innerHTML = '<label class="v12-drop"><input type="file" accept=".pptx,.pdf,.docx,.txt" hidden>' +
-      '<b>교육자료 업로드 (PPT · PDF · Word)</b>' +
-      '<span>제품 교육자료를 올리면 콘셉트 · 판매 포인트 · 대표성분 · 사용 단계를 정리하고, 기본정보 · 전성분과 대조해 문안에 반영합니다<br>파일은 서버로 보내지 않고 이 브라우저 안에서만 읽습니다 · PPT(.pptx)가 가장 정확합니다</span></label>' +
+      '<b>교육자료 업로드 (PPT)</b>' +
+      '<span>제품 교육자료 PPT를 올리면 콘셉트 · 판매 포인트 · 대표성분 · 사용 단계를 정리하고, 기본정보 · 전성분과 대조해 문안에 반영합니다<br>PDF · Word로 된 교육자료도 올릴 수 있습니다 · 파일은 서버로 보내지 않고 이 브라우저 안에서만 읽습니다</span></label>' +
       '<div class="v12-res" hidden></div>';
     drop.parentNode.insertBefore(box, drop.nextSibling);
     var lab = box.querySelector('label'), fi = box.querySelector('input[type=file]'), res = box.querySelector('.v12-res');
@@ -1098,10 +1103,30 @@
   V12.safe = safe;
   V12.wrap = wrapGenerate;
   V12._t = { parseXml: parseXml, slideElems: slideElems, textToSlides: textToSlides, post: post, eduSections: eduSections };
+  V12.version = '13';
+  V12.setup = setup;
   wrapGenerate();
+  /* v13: 화면을 다시 그려도(단계 이동 등) [교육자료 업로드] 칸이 사라지지 않게 지켜 봄
+     · 단상자 칸(#v10Carton)이 뒤늦게 생겨도 바로 지움 */
+  function watch() {
+    setup();
+    if (!G.MutationObserver || !doc.body || watch._on) return;
+    watch._on = true;
+    var busy = false;
+    new G.MutationObserver(function () {
+      if (busy) return;
+      busy = true;
+      G.setTimeout(function () {
+        busy = false;
+        var old = doc.getElementById('v10Carton');
+        if (old) old.remove();
+        if (doc.getElementById('drop') && !doc.getElementById('v12Edu')) setup();
+      }, 0);
+    }).observe(doc.body, { childList: true, subtree: true });
+  }
   if (doc) {
-    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', setup);
-    else setup();
+    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', watch);
+    else watch();
     G.addEventListener && G.addEventListener('load', wrapGenerate);
   }
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -1,5 +1,5 @@
 /* =========================================================
-   v10 — PDF 바로 읽기 개선 + 최종 단상자 디자인 자동 채우기
+   v10 — PDF 바로 읽기 개선 (v13: 단상자 칸 대신 교육자료(PPT) 칸 자동 불러오기)
    index.html에서 v9-docs.js 바로 앞에 불러옵니다. (v9-docs.js는 한 줄만 고칩니다)
 
    [1] PDF를 OCR 없이 바로 읽기
@@ -30,6 +30,7 @@
   var PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
   var OPT = G.V10_OPTIONS = Object.assign({ ocr: 'auto', minChars: 30, carton: false }, G.V10_OPTIONS || {});
   var V10 = G.V10 = G.V10 || {};
+  var SELF = (doc && doc.currentScript && doc.currentScript.src) || '';
 
   var str = function (s) { return String(s == null ? '' : s).trim(); };
   var one = function (s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); };
@@ -767,5 +768,24 @@
   if (doc && OPT.carton === true) {
     if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', setupCarton);
     else setupCarton();
+  }
+  /* v13: 단상자 칸 자리에 [교육자료 업로드 (PPT)] 칸을 띄움
+     index.html에 v12-edu.js 줄을 넣지 않았어도, 페이지가 다 열린 뒤 같은 js 폴더의 v12-edu.js를 자동으로 불러옵니다.
+     (이미 불러왔으면 다시 불러오지 않음 · 끄려면 V10_OPTIONS = { edu: false }) */
+  function loadEdu() {
+    if (OPT.edu === false || (G.V12 && G.V12.analyzeDeck) || doc.getElementById('v12EduLoader')) return;
+    var src = SELF ? SELF.replace(/v10-pdf\.js(\?[^#]*)?(#.*)?$/, 'v12-edu.js?v=13') : 'js/v12-edu.js?v=13';
+    if (src === SELF) src = 'js/v12-edu.js?v=13';
+    var s = doc.createElement('script');
+    s.id = 'v12EduLoader';
+    s.src = src;
+    s.onerror = function () {
+      if (G.console) console.warn('[v13] js/v12-edu.js를 찾지 못했습니다. 서버의 js 폴더에 v12-edu.js를 올려 주세요.');
+    };
+    doc.body.appendChild(s);
+  }
+  if (doc && G.addEventListener) {
+    if (doc.readyState === 'complete') G.setTimeout(loadEdu, 0);
+    else G.addEventListener('load', loadEdu);
   }
 })(typeof window !== 'undefined' ? window : globalThis);
