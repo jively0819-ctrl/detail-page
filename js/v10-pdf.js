@@ -18,7 +18,8 @@
      - 제품명 · 영문명 · 용량 · 전성분 · 대표성분 함량 · 기능성 · 사용법 · 사용기한
        · 책임판매업자 · 상담 전화번호 · 추가 주의사항을 읽어 채웁니다.
      - 비어 있는 칸만 채우고, 이미 값이 있으면 [바꾸기] 버튼으로 고릅니다.
-     - 글자를 윤곽선(아웃라인)으로 바꾼 인쇄용 파일은 글자 정보가 없어 읽을 수 없습니다 → 안내 문구 표시
+     - 글자를 윤곽선(아웃라인)으로 바꾼 인쇄용 파일은 v11-outline.js가 있으면 OCR + 전성분 비교로 읽습니다
+       (v11이 없으면 안내 문구만 표시)
 
    옵션 (index.html에서 이 파일보다 먼저 선언하면 적용)
      window.V10_OPTIONS = { ocr: 'auto' }   // 'auto' = 글자 없을 때만 OCR · 'off' = OCR 사용 안 함
@@ -587,6 +588,7 @@
     filled: ['ok', '채움'],
     same: ['ok', '같음'],
     kept: ['warn', '기존값 유지'],
+    ocrchk: ['warn', '아래에서 확인 후 채우기'],
     nosel: ['warn', '선택지 없음'],
     none: ['no', '못 찾음'],
     info: ['no', '참고용']
@@ -647,7 +649,7 @@
     }).join('');
     var kept = FIELDS.some(function (f) { return S.st[f[0]] === 'kept'; });
     res.innerHTML = '<div class="v10-head"><b>단상자에서 읽은 값 · ' + esc(S.file) + '</b>' +
-      '<small>PDF 글자 ' + S.chars.toLocaleString() + '자를 바로 읽음 (OCR 없음)' +
+      '<small>' + (S.ocr ? '윤곽선 파일 · OCR로 읽음 (평균 신뢰도 ' + S.conf + '%) · 모든 값을 원본과 대조해 주세요' : 'PDF 글자 ' + S.chars.toLocaleString() + '자를 바로 읽음 (OCR 없음)') +
       (kept ? ' <button type="button" class="v10-x" data-all="1">모두 단상자 값으로 바꾸기</button>' : '') + '</small></div>' +
       '<table>' + rows + '</table>' +
       '<p class="muted small" style="margin:6px 0 0">비어 있던 칸만 자동으로 채웠습니다. 값이 다르면 [바꾸기]를 눌러 주세요. 최종 게시 전 원본과 한 번 더 대조해 주세요.</p>';
@@ -673,30 +675,67 @@
     box.className = 'v10-wrap';
     box.innerHTML = '<label class="v10-drop"><input type="file" accept=".pdf,.ai,application/pdf" hidden>' +
       '<b>최종 단상자 디자인 업로드 (PDF · AI)</b>' +
-      '<span>단상자 파일을 올리면 제품명 · 용량 · 전성분 · 사용법 · 사용기한 · 책임판매업자 · 상담 전화번호를 바로 읽어 채웁니다<br>OCR 없이 파일 안의 글자를 그대로 읽습니다 (글자를 윤곽선으로 바꾼 파일은 읽을 수 없음)</span></label>' +
+      '<span>단상자 파일을 올리면 제품명 · 용량 · 전성분 · 사용법 · 사용기한 · 책임판매업자 · 상담 전화번호를 바로 읽어 채웁니다<br>글자가 살아 있으면 OCR 없이 바로 읽고, 윤곽선(아웃라인) 최종본이면 OCR로 읽은 뒤 전성분을 기존 값과 비교합니다</span></label>' +
       '<div class="v10-res" hidden></div>';
     drop.parentNode.insertBefore(box, drop.nextSibling);
     var lab = box.querySelector('label'), inp = box.querySelector('input'), res = box.querySelector('.v10-res');
     var S = null;
+    /* 결과 표 + (윤곽선 OCR이면) 전성분 비교 패널 */
+    function show() {
+      render(res, S);
+      if (S.ocr && G.V11 && G.V11.mountInci) {
+        var slot = doc.createElement('div');
+        res.appendChild(slot);
+        G.V11.mountInci(slot, { data: S.data, r: S.r, base: S.base }, function (v) {
+          S.data.inci = v;
+          S.st.inci = 'filled';
+          note('확인한 전성분으로 입력칸을 채웠습니다');
+          show();
+        });
+      }
+    }
     async function run(file) {
       res.hidden = false;
       res.innerHTML = '<p class="muted small">단상자 파일을 읽는 중입니다…</p>';
       try {
-        var r = await V10.readPdf(file);
-        if (r.stats.garbled) {
-          res.innerHTML = '<p class="v10-err">이 파일은 글꼴 정보가 깨져 있어 글자를 바로 읽을 수 없습니다. 디자인 프로그램에서 PDF로 다시 내보내 올려 주세요.</p>';
-          return;
+        var r = await V10.readPdf(file), ocr = false;
+        var fi = doc.getElementById('fInci'), base = fi ? str(fi.value) : '';
+        if (r.stats.garbled || r.stats.good < OPT.minChars) {
+          var dg = r.stats.garbled ? { kind: 'garbled' } : await V10.diagnose(r.pdf);
+          if (!G.V11 || !G.V11.ocrPdf || dg.kind === 'empty') {
+            res.innerHTML = r.stats.garbled
+              ? '<p class="v10-err">이 파일은 글꼴 정보가 깨져 있어 글자를 바로 읽을 수 없습니다. 디자인 프로그램에서 PDF로 다시 내보내 올려 주세요.</p>'
+              : noText(dg);
+            return;
+          }
+          res.innerHTML = '<p class="muted small v10-prog">' + (dg.kind === 'outline' ? '글자가 윤곽선(아웃라인)으로 되어 있어' : dg.kind === 'garbled' ? '글꼴 정보가 깨져 있어' : '이미지로 된 파일이라') +
+            ' 그림으로 읽는 중입니다 (OCR · 이 브라우저 안에서만 처리) · 처음 한 번은 한글 OCR 데이터를 내려받느라 더 걸립니다</p>';
+          var pr = res.querySelector('.v10-prog'), msg0 = pr.textContent;
+          r = await G.V11.ocrPdf(r.pdf, {
+            onProgress: function (p) {
+              pr.textContent = msg0 + ' — ' + (p.phase === 'layout' ? p.page + '/' + p.pages + '쪽 글자 위치 찾는 중' : p.page + '/' + p.pages + '쪽 글자 덩어리 ' + p.block + '/' + p.blocks);
+            }
+          });
+          if (r.stats.good < 10) {
+            res.innerHTML = '<p class="v10-err">OCR로도 글자를 거의 읽지 못했습니다. 해상도가 매우 낮거나 글자가 너무 작은 파일일 수 있습니다.</p>';
+            return;
+          }
+          ocr = true;
         }
-        if (r.stats.good < OPT.minChars) {
-          res.innerHTML = noText(await V10.diagnose(r.pdf));
-          return;
+        var data = V10.parseCarton(r), forApply = data, cmp = null;
+        if (ocr) {
+          cmp = G.V11.compareInci(data.inci, base);
+          data.inciOcr = data.inci;
+          data.inci = cmp.text;
+          /* 바뀐 성분이나 확인할 성분이 있으면 전성분은 자동으로 채우지 않음 (비교 패널에서 확인 후 채우기) */
+          if (cmp.review || cmp.diff) forApply = Object.assign({}, data, { inci: '' });
         }
-        var data = V10.parseCarton(r);
-        S = { data: data, st: apply(data, false), file: file.name || '', chars: r.stats.good };
-        V10.lastCarton = { data: data, text: r.text };
-        render(res, S);
+        S = { data: data, st: apply(forApply, false), file: file.name || '', chars: r.stats.good, ocr: ocr, r: r, base: base, conf: r.conf || 0 };
+        if (ocr && forApply !== data && data.inci) S.st.inci = 'ocrchk';
+        V10.lastCarton = { data: data, text: r.text, ocr: ocr };
+        show();
         var n = FIELDS.filter(function (f) { return S.st[f[0]] === 'filled'; }).length;
-        note('단상자에서 ' + n + '개 칸을 채웠습니다');
+        note('단상자에서 ' + n + '개 칸을 채웠습니다' + (ocr ? ' (OCR · 값을 꼭 확인해 주세요)' : ''));
       } catch (e) {
         res.innerHTML = '<p class="v10-err">' + esc(e && e.message ? e.message : e) + '</p>';
       }
@@ -706,7 +745,7 @@
       if (!S || !t || !t.classList || !t.classList.contains('v10-x')) return;
       var st = t.getAttribute('data-all') ? apply(S.data, true) : apply(S.data, true, t.getAttribute('data-k'));
       Object.keys(st).forEach(function (k) { S.st[k] = st[k]; });
-      render(res, S);
+      show();
     });
     inp.addEventListener('change', function () {
       if (inp.files && inp.files[0]) run(inp.files[0]);

@@ -19,11 +19,12 @@ td.k{width:150px;color:#6b7280}pre{white-space:pre-wrap;word-break:break-all;fon
 <body>
 <div class="card">
   <h1>PDF 바로 읽기 점검</h1>
-  <p>컨셉 · 성분 자료나 단상자 PDF를 올리면, OCR 없이 바로 읽히는지와 읽힌 글자, 단상자에서 뽑힌 값을 보여 줍니다. 파일은 서버로 보내지 않고 이 브라우저 안에서만 읽습니다.</p>
+  <p>컨셉 · 성분 자료나 단상자 PDF를 올리면, OCR 없이 바로 읽히는지와 읽힌 글자, 단상자에서 뽑힌 값을 보여 줍니다. 윤곽선(아웃라인) 최종본이면 OCR로 읽고 전성분을 성분 사전과 비교합니다. 파일은 서버로 보내지 않고 이 브라우저 안에서만 읽습니다.</p>
   <label class="drop"><input type="file" id="f" accept=".pdf,.ai" hidden><b>PDF · AI 파일 선택</b></label>
 </div>
 <div class="card" id="out" hidden></div>
-<script src="../js/v10-pdf.js?v=10"></script>
+<script src="../js/v10-pdf.js?v=11"></script>
+<script src="../js/v11-outline.js?v=11"></script>
 <script>
 (function () {
   var $ = function (s) { return document.querySelector(s); };
@@ -36,12 +37,23 @@ td.k{width:150px;color:#6b7280}pre{white-space:pre-wrap;word-break:break-all;fon
     out.innerHTML = '<p>읽는 중입니다…</p>';
     try {
       var r = await V10.readPdf(file);
-      var st = r.stats, verdict;
-      if (st.garbled) verdict = '<span class="bad">글꼴 정보가 깨진 PDF · 바로 읽기 불가 (OCR 필요)</span>';
+      var st = r.stats, verdict, ocr = false;
+      if (st.garbled) verdict = '<span class="bad">글꼴 정보가 깨진 PDF · 바로 읽기 불가</span>';
       else if (st.good >= 30) verdict = '<span class="ok">바로 읽기 가능 · OCR 필요 없음</span>';
       else {
         var d = await V10.diagnose(r.pdf);
-        verdict = '<span class="bad">' + (d.kind === 'outline' ? '글자가 윤곽선(도형)으로 변환됨 · 원본(글자 살린 PDF) 필요' : d.kind === 'image' ? '스캔 이미지 · OCR 필요' : '글자 없음') + '</span>';
+        verdict = '<span class="bad">' + (d.kind === 'outline' ? '글자가 윤곽선(도형)으로 변환됨' : d.kind === 'image' ? '스캔 이미지' : '글자 없음') + '</span>';
+      }
+      if ((st.garbled || st.good < 30) && window.V11) {
+        var t0 = Date.now();
+        r = await V11.ocrPdf(r.pdf, {
+          onProgress: function (p) {
+            out.innerHTML = '<p>OCR로 읽는 중입니다… ' + (p.phase === 'layout' ? p.page + '쪽 글자 위치 찾기' : p.page + '쪽 덩어리 ' + p.block + '/' + p.blocks) + '</p>';
+          }
+        });
+        st = r.stats;
+        ocr = true;
+        verdict += ' → <b>OCR로 읽음</b> · 평균 신뢰도 ' + r.conf + '% · ' + Math.round((Date.now() - t0) / 1000) + '초';
       }
       var dup = r.pages.reduce(function (s, p) { return s + (p.dupCount || 0); }, 0);
       var c = V10.parseCarton(r);
@@ -52,7 +64,12 @@ td.k{width:150px;color:#6b7280}pre{white-space:pre-wrap;word-break:break-all;fon
         '<tr><td class="k">판정</td><td>' + verdict + '</td></tr>' +
         '<tr><td class="k">읽은 글자</td><td>' + st.good.toLocaleString() + '자 (깨진 글자 ' + st.bad + ' · 중복 제거 ' + dup + '조각)</td></tr>' +
         '</table><h3 style="font-size:15px;margin:16px 0 6px">단상자로 읽었을 때 채워지는 값</h3><table>' + rows + '</table>' +
-        '<h3 style="font-size:15px;margin:16px 0 6px">바로 읽은 글자 (읽는 순서 정렬 후)</h3><pre>' + esc(r.text.slice(0, 20000)) + '</pre>';
+        '<div id="v11slot"></div>' +
+        '<h3 style="font-size:15px;margin:16px 0 6px">' + (ocr ? 'OCR로 읽은 글자' : '바로 읽은 글자 (읽는 순서 정렬 후)') + '</h3><pre>' + esc(r.text.slice(0, 20000)) + '</pre>';
+      if (ocr && c.inci) {
+        c.inciOcr = c.inci;
+        V11.mountInci(document.getElementById('v11slot'), { data: c, r: r, base: '' });
+      }
     } catch (e) {
       out.innerHTML = '<p class="bad">' + esc(e.message || e) + '</p>';
     }
