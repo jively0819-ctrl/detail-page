@@ -13,7 +13,7 @@
        변경: 직접 읽은 글자가 30자 이상이면 OCR 없이 바로 사용 · 글자가 없거나 깨진 PDF만 OCR
      - 이 개선은 v9의 [인체적용시험 보고서] · [제조사 추가 자료] 칸에 올리는 PDF 전체에 적용됩니다.
 
-   [2] 최종 단상자 디자인(PDF · AI) → 입력칸 자동 채우기
+   [2] (v12부터 기본 꺼짐 · V10_OPTIONS.carton = true 일 때만) 최종 단상자 디자인(PDF · AI) → 입력칸 자동 채우기
      - 입력템플릿 업로드 칸 아래에 [최종 단상자 디자인 업로드] 칸을 추가합니다.
      - 제품명 · 영문명 · 용량 · 전성분 · 대표성분 함량 · 기능성 · 사용법 · 사용기한
        · 책임판매업자 · 상담 전화번호 · 추가 주의사항을 읽어 채웁니다.
@@ -28,7 +28,7 @@
   'use strict';
   var doc = G.document;
   var PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
-  var OPT = G.V10_OPTIONS = Object.assign({ ocr: 'auto', minChars: 30 }, G.V10_OPTIONS || {});
+  var OPT = G.V10_OPTIONS = Object.assign({ ocr: 'auto', minChars: 30, carton: false }, G.V10_OPTIONS || {});
   var V10 = G.V10 = G.V10 || {};
 
   var str = function (s) { return String(s == null ? '' : s).trim(); };
@@ -762,7 +762,9 @@
       if (f) run(f);
     });
   }
-  if (doc) {
+  /* v12: [최종 단상자 디자인 업로드] 칸은 기본으로 끔 (윤곽선 최종본이 제대로 읽히지 않아 제거)
+     다시 켜려면 index.html에서 이 파일보다 먼저 window.V10_OPTIONS = { carton: true } 선언 */
+  if (doc && OPT.carton === true) {
     if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', setupCarton);
     else setupCarton();
   }
