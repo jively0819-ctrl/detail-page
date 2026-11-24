@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>PDF 바로 읽기 점검</title>
+<style>
+body{font-family:Pretendard,-apple-system,"Segoe UI",sans-serif;margin:0;padding:24px;color:#111827;background:#f8fafc}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px 18px;max-width:980px;margin:0 auto 14px}
+h1{font-size:20px;margin:0 0 6px}p{color:#6b7280;font-size:13px;margin:4px 0}
+label.drop{display:block;border:1.5px dashed #c7cdd6;border-radius:10px;padding:22px;text-align:center;cursor:pointer;margin-top:10px}
+label.drop:hover{border-color:#2563eb}
+table{width:100%;border-collapse:collapse;font-size:13px}td{border-top:1px solid #f1f5f9;padding:6px;vertical-align:top}
+td.k{width:150px;color:#6b7280}pre{white-space:pre-wrap;word-break:break-all;font-size:12px;max-height:420px;overflow:auto;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:10px}
+.ok{color:#166534;font-weight:600}.bad{color:#b91c1c;font-weight:600}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>PDF 바로 읽기 점검</h1>
+  <p>컨셉 · 성분 자료나 단상자 PDF를 올리면, OCR 없이 바로 읽히는지와 읽힌 글자, 단상자에서 뽑힌 값을 보여 줍니다. 파일은 서버로 보내지 않고 이 브라우저 안에서만 읽습니다.</p>
+  <label class="drop"><input type="file" id="f" accept=".pdf,.ai" hidden><b>PDF · AI 파일 선택</b></label>
+</div>
+<div class="card" id="out" hidden></div>
+<script src="../js/v10-pdf.js?v=10"></script>
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  $('#f').addEventListener('change', async function () {
+    var file = this.files[0];
+    if (!file) return;
+    var out = $('#out');
+    out.hidden = false;
+    out.innerHTML = '<p>읽는 중입니다…</p>';
+    try {
+      var r = await V10.readPdf(file);
+      var st = r.stats, verdict;
+      if (st.garbled) verdict = '<span class="bad">글꼴 정보가 깨진 PDF · 바로 읽기 불가 (OCR 필요)</span>';
+      else if (st.good >= 30) verdict = '<span class="ok">바로 읽기 가능 · OCR 필요 없음</span>';
+      else {
+        var d = await V10.diagnose(r.pdf);
+        verdict = '<span class="bad">' + (d.kind === 'outline' ? '글자가 윤곽선(도형)으로 변환됨 · 원본(글자 살린 PDF) 필요' : d.kind === 'image' ? '스캔 이미지 · OCR 필요' : '글자 없음') + '</span>';
+      }
+      var dup = r.pages.reduce(function (s, p) { return s + (p.dupCount || 0); }, 0);
+      var c = V10.parseCarton(r);
+      var rows = [['제품명', c.name], ['영문 제품명', c.en], ['용량', c.vol], ['전성분', c.inci], ['대표성분 함량', c.content], ['기능성', c.func], ['사용법', c.usage], ['사용기한', c.expiry], ['책임판매업자', c.seller], ['제조업자', c.maker], ['상담 전화', c.phone], ['추가 주의사항', c.caution]]
+        .map(function (x) { return '<tr><td class="k">' + x[0] + '</td><td>' + (x[1] ? esc(x[1]).replace(/\n/g, '<br>') : '-') + '</td></tr>'; }).join('');
+      out.innerHTML = '<table>' +
+        '<tr><td class="k">파일</td><td>' + esc(file.name) + ' · ' + r.pdf.numPages + '쪽</td></tr>' +
+        '<tr><td class="k">판정</td><td>' + verdict + '</td></tr>' +
+        '<tr><td class="k">읽은 글자</td><td>' + st.good.toLocaleString() + '자 (깨진 글자 ' + st.bad + ' · 중복 제거 ' + dup + '조각)</td></tr>' +
+        '</table><h3 style="font-size:15px;margin:16px 0 6px">단상자로 읽었을 때 채워지는 값</h3><table>' + rows + '</table>' +
+        '<h3 style="font-size:15px;margin:16px 0 6px">바로 읽은 글자 (읽는 순서 정렬 후)</h3><pre>' + esc(r.text.slice(0, 20000)) + '</pre>';
+    } catch (e) {
+      out.innerHTML = '<p class="bad">' + esc(e.message || e) + '</p>';
+    }
+    this.value = '';
+  });
+})();
+</script>
+</body>
+</html>
